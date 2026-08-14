@@ -29,50 +29,19 @@ from __future__ import annotations
 
 import sys
 from dataclasses import dataclass, field
-from enum import IntEnum
 from typing import Any, Iterator
 
 
-class Tag(IntEnum):
-    """A three-valued judgement about a token property. ZERO is not false."""
-
-    PLUS = 1        # the property holds
-    ZERO = 0        # not enough to say — the honest middle, never 'false'
-    MINUS = -1      # the property was checked and does not hold
-
-    @property
-    def glyph(self) -> str:
-        return {1: "+", 0: "0", -1: "−"}[int(self)]
-
-    def __repr__(self) -> str:
-        return f"Tag.{self.name}"
-
-
-@dataclass(frozen=True)
-class Judgment:
-    """A tag with its reason. A finding that cannot say WHY is not a finding."""
-
-    tag: Tag
-    why: str = ""
-    value: Any = None       # the concrete label, present only when tag is PLUS
-
-    def __bool__(self) -> bool:
-        raise TypeError(
-            "a Judgment is three-valued and refuses to collapse to two. Test "
-            "`j.tag is Tag.PLUS` — an implicit bool would read ZERO (not enough "
-            "to say) as False, which is the defect this type prevents.")
-
-    @classmethod
-    def yes(cls, value: Any = None, why: str = "") -> Judgment:
-        return cls(Tag.PLUS, why, value)
-
-    @classmethod
-    def no(cls, why: str = "") -> Judgment:
-        return cls(Tag.MINUS, why)
-
-    @classmethod
-    def unknown(cls, why: str = "") -> Judgment:
-        return cls(Tag.ZERO, why)
+# THE THREE-VALUED TAG AND ITS JUDGMENT NOW COME FROM krisis. They were defined
+# here first and were, byte for byte in behaviour, krisis.Trit and krisis.Verdict:
+# same values, same glyphs, same bool-refusal, same field order. Keeping a second
+# copy was the duplication the krisis spec exists to remove, so this is the first
+# migration that proves the extraction — glossa's own witness is now a conformance
+# test that krisis matches the contract glossa depended on.
+#
+#   Tag      is krisis.Trit     (PLUS / ZERO / MINUS)
+#   Judgment is krisis.Verdict  (a strict superset — it also offers .decided())
+from krisis import Trit as Tag, Verdict as Judgment
 
 
 @dataclass

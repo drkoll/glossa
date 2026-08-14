@@ -19,7 +19,7 @@ classifiers = [
   "Topic :: Text Processing :: Linguistic",
   "Typing :: Typed",
 ]
-dependencies = []
+dependencies = ["krisis>=0.1.0"]
 
 [project.scripts]
 glossa = "glossa.__main__:_entry"

@@ -3,8 +3,9 @@
 **A ternary NLP engine for any sequence — text, genes, proteins, and whatever
 else turns out to be language. spaCy assumes text; glossa doesn't.**
 
-Pure Python standard library. No dependencies, no model weights. A foundational
-skeleton, built to grow — not a finished engine.
+Pure Python. No model weights. One dependency — [krisis](https://github.com/drkoll/krisis),
+the shared three-valued core `glossa`'s `Tag`/`Judgment` was extracted into. A
+foundational skeleton, built to grow — not a finished engine.
 
 ```bash
 pip install glossa
