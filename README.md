@@ -8,7 +8,7 @@ skeleton, built to grow — not a finished engine.
 
 ```bash
 pip install glossa
-python3 -m glossa            # all three witnesses
+python3 -m glossa            # all four witnesses
 ```
 
 γλῶσσα — the tongue.
@@ -90,6 +90,81 @@ Because the null model differs by domain (text shuffles words; DNA shuffles codo
 keeping base composition; protein shuffles residues), **`shuffle` is a required
 part of the domain adapter.** A domain that can't say how to destroy its own
 structure can't have its patterns tested.
+
+## Recursion-breakers: the five breaks, made mathematical
+
+Every break is a **search**, and the sizes decide everything:
+
+| break | search size | what it is |
+|---|---|---|
+| word boundaries | 2^(n-1) | exponential — segmentation |
+| reading direction | **6** | a *finite group*, Z2 × Z3 |
+| sentence bounds | 2^(n-1) | segmentation again |
+| meaning | ∞ | needs a world, not a sequence |
+| **recursion / nesting** | **∞ depth** | the only one that self-calls |
+
+Four are finite or merely exponential. **Recursion is the one whose depth is
+unbounded** — it can call itself forever — which is exactly why the breaker
+matters. `glossa.bounds` mathematises all five and builds the breakers.
+
+### The one idea: a recursion-breaker is a bounded computation with a three-valued halt
+
+Impose a budget, run, and when it's exceeded return `ZERO` — never a crash, never
+a guess. This unifies two things that looked different:
+
+```
+ZERO from missing DATA     — the tag was never assigned
+ZERO from missing BUDGET   — the search ran out before it could decide
+```
+
+Both are the same honest middle. An engine that must handle *anything* cannot
+promise to finish — so its promise is instead: **it always halts, and when it
+cannot decide within budget it says so** in the same three-valued language it uses
+everywhere else.
+
+### Nesting is the Dyck language — one reader for RNA and for syntax
+
+RNA secondary structure is written in dot-bracket notation. A nested clause is the
+same formal object. `parse_nesting` reads both, and keeps a distinction a
+two-valued parser must throw away:
+
+```python
+parse_nesting(list("(((....)))"), max_depth=10)   # PLUS — depth 3, in budget
+parse_nesting(list("(((....)))"), max_depth=2)    # ZERO — too deep to say
+parse_nesting(list("([)]"))                       # MINUS — malformed, a real error
+```
+
+**`MINUS` (malformed) is not `ZERO` (too deep).** One is wrong; the other is
+merely undecided at this budget. Collapsing them discards exactly what a
+discernment engine needs.
+
+### The general breaker: any non-halting computation made total
+
+```python
+def forever(tick): tick(); return forever(tick)   # never terminates
+bounded(forever, max_steps=500)                   # ZERO — halted, not hung
+```
+
+`bounded` runs any self-recursive computation under a hard step budget and returns
+`ZERO` on exhaustion. The recursion-breaker generalised past brackets.
+
+### Reading direction is a finite group, not a search
+
+```python
+readings("ATGTTTGGA")   # exactly 6: {+0,+1,+2,−0,−1,−2} = Z2 × Z3
+```
+
+Break #2 isn't unbounded at all — it's a closed group of order six. The breaker is
+just to enumerate it; there is no seventh reading to fear.
+
+### Where math ends and training begins
+
+These breakers make the **structure** tractable — how deep, how many frames, where
+the cuts could be. They do not supply the **content**: which cut is right, what a
+codon does, what a word means. That's what training data is for. The skeleton is
+the discernment; the data is the knowledge. `meaning` is `refused` in the breaks
+table precisely so the engine never hallucinates a referent it cannot derive from
+the sequence.
 
 ## The extension points — where this grows
 

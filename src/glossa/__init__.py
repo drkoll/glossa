@@ -16,6 +16,15 @@ stage: no pattern is called real until it beats the domain's own shuffle.
 
 from __future__ import annotations
 
+from glossa.bounds import (
+    BREAKS,
+    Break,
+    bounded,
+    depth_profile,
+    nesting,
+    parse_nesting,
+    readings,
+)
 from glossa.core import Doc, Judgment, Tag, Token
 from glossa.pipeline import (
     FUTURE_COMPONENTS,
@@ -43,5 +52,8 @@ __all__ = [
     "VOCABULARIES", "FUTURE_DOMAINS",
     "Pipeline", "frequencies", "entropy", "translator", "significance",
     "Significance", "FUTURE_COMPONENTS",
+    # bounds — the five breaks mathematised, with recursion-breakers
+    "BREAKS", "Break", "parse_nesting", "depth_profile", "bounded", "readings",
+    "nesting",
     "__version__",
 ]
