@@ -26,7 +26,6 @@ next layers without faking them.
 from __future__ import annotations
 
 import math
-import random
 import sys
 from collections import Counter
 from dataclasses import dataclass
@@ -80,20 +79,12 @@ def translator(table: dict[str, str], tag_name: str) -> Component:
     return component
 
 
-@dataclass
-class Significance:
-    """The finding that beat chance — or the honest verdict that it did not."""
-
-    observed: float
-    chance_mean: float
-    chance_max: float
-    trials: int
-    verdict: Judgment
-
-    def line(self) -> str:
-        return (f"observed {self.observed:.3f}, chance mean {self.chance_mean:.3f}, "
-                f"max {self.chance_max:.3f} over {self.trials} shuffles — "
-                f"{self.verdict.tag.glyph} {self.verdict.why}")
+# Significance WAS a local dataclass carrying observed/chance_mean/chance_max/
+# trials — which is exactly krisis.Assay. The null-model METHOD below was also
+# reimplemented here before krisis held it. Both now come from the shared core;
+# this is the second glossa migration, absorbing a method rather than a type.
+from krisis.assay import Assay as Significance
+from krisis.assay import assay as _assay
 
 
 def significance(vocab, statistic: Callable[[list[str]], float], *,
@@ -109,22 +100,12 @@ def significance(vocab, statistic: Callable[[list[str]], float], *,
     """
     def component(doc: Doc) -> Doc:
         toks = doc.texts()
-        obs = statistic(toks)
-        rng = random.Random(seed)
-        shuffled = [statistic(vocab.shuffle(toks, rng)) for _ in range(trials)]
-        mean = sum(shuffled) / len(shuffled) if shuffled else 0.0
-        mx = max(shuffled) if shuffled else 0.0
-        if obs > mx:
-            v = Judgment.yes(obs, f"exceeds all {trials} shuffles (max {mx:.3f})")
-        elif obs > mean:
-            v = Judgment.unknown(
-                f"above the chance mean {mean:.3f} but within its range "
-                f"(max {mx:.3f}) — not enough to say")
-        else:
-            v = Judgment.no(f"at or below chance mean {mean:.3f}")
-        doc.tags["significance"] = v
-        doc.tags["_sig_detail"] = Judgment.yes(
-            Significance(obs, mean, mx, trials, v))
+        observed = statistic(toks)
+        # the domain's own null model, as the sampler krisis.assay expects
+        v = _assay(observed, lambda r: statistic(vocab.shuffle(toks, r)),
+                   trials=trials, seed=seed)
+        doc.tags["significance"] = v            # a Verdict (== glossa Judgment)
+        doc.tags["_sig_detail"] = Judgment.yes(v.value)   # the Assay detail
         return doc
     return component
 
