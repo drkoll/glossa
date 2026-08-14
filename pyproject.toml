@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "glossa"
+version = "0.1.0"
+description = "A ternary NLP engine for any sequence — text, genes, proteins — with the chance baseline built into the pipeline. spaCy assumes text; glossa does not."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [{ name = "Ian Koll" }]
+keywords = ["nlp", "bioinformatics", "sequence analysis", "tokenizer", "spacy", "genomics", "three-valued logic"]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+  "Topic :: Text Processing :: Linguistic",
+  "Typing :: Typed",
+]
+dependencies = []
+
+[project.scripts]
+glossa = "glossa.__main__:_entry"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/glossa"]
